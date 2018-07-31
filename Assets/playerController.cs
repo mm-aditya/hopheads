@@ -7,6 +7,8 @@ public class playerController : MonoBehaviour {
     private Rigidbody2D rbody;
     private playerCollider pcollider;
 
+    public KillPointHandler points;
+
     private int playerNum; //player 1 or 2
 
     //walk variables
@@ -39,6 +41,17 @@ public class playerController : MonoBehaviour {
     private float dashEnd = 0;
     private bool dashCooldownState = false;
 
+    //parry variables
+    private GameObject parryright;
+    private GameObject parryleft;
+    private GameObject parryup;
+    private bool parryState = false;
+    private bool parryCooldown = false;
+    public float parryCooldownTime = 0.5f;
+    public float parryTime = 0.1f;
+    private float parryStart;
+
+
     //collision states
     private bool isGround = false;
     private bool isSide = false;
@@ -46,7 +59,7 @@ public class playerController : MonoBehaviour {
     private bool isLeft = false;
 
     //gravity value
-    private float gravityScale = 1;
+    private float gravityScale = 0.9f;
 
     //size variables
     public float playerSize = 0.8f;
@@ -55,9 +68,9 @@ public class playerController : MonoBehaviour {
     public bool flipped = false; //false is face right, true is face left
     private SpriteRenderer sprite;
 
-    //death handling
-    private bool killer = false;
-    private bool killed = false;
+    //powerup handling
+    private bool mushroom = false;
+    public float mushroomTime = 1.0f;
 
     private void Awake()
     {
@@ -79,27 +92,24 @@ public class playerController : MonoBehaviour {
         dropForce *= transform.localScale.x;
         gravityScale *= transform.localScale.x;
         rbody.gravityScale = gravityScale;
+
+        parryright = transform.Find("parryright").gameObject;
+        parryleft = transform.Find("parryleft").gameObject;
+        parryup = transform.Find("parryup").gameObject;
+        enableParryDirection(false, false, false);
     }
 	
 	void Update ()
     {
-        killed = pcollider.getKiller(); killer = pcollider.getKilled();
-        if (killed || killer)
-        {
-            //can do death animation before reset
-            pcollider.reset();
-            if (killed) print(transform.name + " died");
-            //updatePoints();
-            return;
-        }
-
         playerSize = 0.8f * transform.localScale.x;
-
         updateCollision();
+        
+        killCheck();
         walkCheck();
         jumpCheck();
         dropCheck();
         dashCheck();
+        parryCheck();
         spriteFlipCheck();
     }
 
@@ -115,6 +125,30 @@ public class playerController : MonoBehaviour {
     void spriteFlipCheck()
     {
         sprite.flipX = flipped;
+    }
+
+    //handle death
+    void killCheck()
+    {
+        bool killed = pcollider.getKill();
+
+        if (killed)
+        {
+            //can do death animation before reset
+            GameObject killer = pcollider.getKiller();
+            if (killer.tag == "Player")
+            {
+                int num = (transform.name == "Player1") ? 2 : 1;
+                points.updateScore(num, 1);
+            }
+            else if (killer.tag == "AreaHazard")
+            {
+                points.updateScore(playerNum, -1);
+            }
+            pcollider.reset(points.getSpawnPoint(transform.position));
+            print(transform.name + " died");
+            return;
+        }
     }
 
     //handling walking
@@ -139,6 +173,8 @@ public class playerController : MonoBehaviour {
     {
         string axis = (playerNum == 1) ? "p1Jump" : "p2Jump";
         float jump = Input.GetAxis(axis);
+        string vAxis = (playerNum == 1) ? "p1Vertical" : "p2Vertical";
+        float v = Input.GetAxis(vAxis);
 
         if (isGround && !jumpState) jumpCount = 0; //reset jump count when on ground
         else if (isSide && !jumpState & jump != 1) jumpCount = 1; //set jump  count to 1 for wall jump
@@ -176,8 +212,8 @@ public class playerController : MonoBehaviour {
                 float jumpValue = jumpSpeed * jumpFunction * 2.5f;
 
                 if (wallJump) {
-                    rbody.velocity = new Vector2(rbody.velocity.x + wallJumpSide * jumpValue*0.5f, jumpValue*0.7f);
-                    if(jumpFunction <= 0.3f) wallJump = false;
+                    rbody.velocity = new Vector2(rbody.velocity.x + wallJumpSide * jumpValue*0.4f, jumpValue*0.7f);
+                    if(jumpFunction <= 0.3f || rbody.velocity.x * wallJumpSide < 0 || v>=0.8f) wallJump = false;
                 }
                 else rbody.velocity = new Vector2(rbody.velocity.x, jumpValue);
 
@@ -198,7 +234,7 @@ public class playerController : MonoBehaviour {
         string axis = (playerNum == 1) ? "p1Vertical" : "p2Vertical";
         float drop = Input.GetAxis(axis);
 
-        if (!isGround && drop <= -0.5)
+        if (!isGround && drop <= -0.7)
         {
             rbody.AddForce(new Vector2(0, dropForce));
             //rbody.velocity = new Vector2(rbody.velocity.x, dropSpeed);
@@ -207,8 +243,11 @@ public class playerController : MonoBehaviour {
 
     void dashCheck()
     {
-        string axis = (playerNum == 1) ? "p1Dash" : "p2Dash";
-        float dash = Input.GetAxis(axis);
+        string dashAxis = (playerNum == 1) ? "p1Dash" : "p2Dash";
+        string hAxis = (playerNum == 1) ? "p1Horizontal" : "p2Horizontal";
+        string vAxis = (playerNum == 1) ? "p1Vertical" : "p2Vertical";
+        float dash = Input.GetAxis(dashAxis);
+        float h = Input.GetAxis(dashAxis);
 
         if (!dashState && !dashCooldownState && dash == 1)
         {
@@ -225,6 +264,7 @@ public class playerController : MonoBehaviour {
         if (dashState && !dashCooldownState) {
             float direction = (flipped) ? 1 : -1;
             float speed = direction * walkSpeed * dashMultiplier;
+            //if ()
             if (Time.time - dashStart < dashTime)
             {
                 rbody.gravityScale = 0;
@@ -248,8 +288,80 @@ public class playerController : MonoBehaviour {
         else return (Time.time - dashStart) / dashTime;//dash on cooldown
     }
 
-    public float getPlayerSize()
+    void parryCheck()
+    {
+        string parryBtn = (playerNum == 1) ? "p1Parry" : "p2Parry";
+        bool parry = Input.GetButtonDown(parryBtn);
+
+        string vAxis = (playerNum == 1) ? "p1Vertical" : "p2Vertical";
+        float v = Input.GetAxis(vAxis);
+
+        if (parry && !parryState && !parryCooldown) //start parry
+        {
+            parryState = true;
+            parryStart = Time.time;
+            if (v >= 0.7) enableParryDirection(false, false, true);
+            else if (!flipped) enableParryDirection(true, false, false);
+            else enableParryDirection(false, true, false);
+        }
+
+        if (parryState) { //parrying
+            float elapsed = Time.time - parryStart;
+            if (elapsed >= parryTime) { //stop parry
+                enableParryDirection(false, false, false);
+                parryState = false;
+                parryCooldown = true;
+                parryStart = Time.time;
+            }
+        }
+
+        if (parryCooldown) //parryCooldown
+        {
+            float elapsed = Time.time - parryStart;
+            if (elapsed >= parryCooldownTime)
+            {
+                parryCooldown = false;
+            }
+        }
+        
+    }
+
+    void enableParryDirection(bool left, bool right, bool up) //left, right, up
+    {
+        parryleft.SetActive(left);
+        parryright.SetActive(right);
+        parryup.SetActive(up);
+    }
+
+    public void getParried()
+    {
+        if (dashState) dashCooldown();
+
+
+    }
+
+    public float getPlayerSize() //default size
     {
         return playerSize;
     }
+
+    public void powerup_ActivateMushroom()
+    {
+        if (mushroom) return; //already activated
+        mushroom = true;
+        transform.localScale *= 1.5f;
+    }
+
+    public void powerup_DectivateMushroom()
+    {
+        mushroom = false;
+        transform.localScale *= (1.0f/1.5f);
+    }
+
+    public bool powerup_getMushroom()
+    {
+        return mushroom;
+    }
+
+    public void destroy_powerup(GameObject powerup) { points.destroyPowerup(powerup); }
 }

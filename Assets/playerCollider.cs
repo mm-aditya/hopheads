@@ -14,7 +14,7 @@ public class playerCollider : MonoBehaviour {
 
     private Transform knob;
 
-    private bool killer = false;
+    private GameObject killer;
     private bool killed = false;
 
     void Start () {
@@ -36,22 +36,34 @@ public class playerCollider : MonoBehaviour {
 
     void OnCollisionEnter2D(Collision2D col)
     {
-        string tag = col.gameObject.tag;
+        if (col.otherCollider.gameObject.tag != "Player") return;
+
+        string tag = col.collider.gameObject.tag;
 
         string side = sideOfCollision(col.contacts);
         //print(side);
 
-        if (side == "top" && tag == "Player") killed = true; 
-        else if (side == "bottom" && tag == "Player") killer = true;
+        if (tag == "platform")
+        {
+            objectDict[col.gameObject] = side;
+            sideDict[side] = col.gameObject;
+        }
 
-        objectDict[col.gameObject] = side;
-        sideDict[side] = col.gameObject;
+        if ((side == "top" && tag == "Player") || (tag == "AreaHazard"))
+        {
+            registerKill(col);
+        }
+        else if (tag == "Powerup") registerPowerup(col);
+        else if (tag == "Parry") registerParried(col);
 
         portalHandling(col.gameObject);
     }
 
     void OnCollisionExit2D(Collision2D col)
     {
+        if (col.otherCollider.gameObject.tag != "Player") return;
+        if (col.collider.gameObject.tag != "platform") return;
+
         string side = objectDict[col.gameObject];
         objectDict.Remove(col.gameObject);
         sideDict.Remove(side);
@@ -76,20 +88,41 @@ public class playerCollider : MonoBehaviour {
         return "left";
     }
 
-    public bool getKiller()
+    void registerKill(Collision2D col)
     {
-        return killer;
+        if (pController.powerup_getMushroom()){
+            pController.powerup_DectivateMushroom();
+            return;
+        }
+        killed = true;
+        killer = col.collider.gameObject;
     }
 
-    public bool getKilled()
+    void registerPowerup(Collision2D col)
     {
-        return killed;
+        GameObject powerup = col.gameObject;
+
+        if (powerup.name == "mushroom")
+        {
+            pController.powerup_ActivateMushroom();
+        }
+
+        pController.destroy_powerup(powerup);
     }
 
-    public void reset()
+    void registerParried(Collision2D col)
     {
-        transform.position = origin;
-        killer = false; killed = false;
+        print("kenna parried");
+    }
+
+    public bool getKill() { return killed; }
+    public GameObject getKiller() { return killer; }
+
+    public void reset(Vector3 pos)
+    {
+        transform.position = pos;
+        killed = false;
+        killer = null;
     }
 
     void portalHandling(GameObject portal)
