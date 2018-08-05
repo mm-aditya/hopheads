@@ -8,8 +8,18 @@ public class KillPointHandler : MonoBehaviour {
     public handlePlayerSpawn playerSpawn;
     public handlePowerupSpawn powerupSpawn;
 
-    public Text p1score;
-    public Text p2score;
+    public playerController p1Controller;
+    public playerController p2Controller;
+
+    public Text p1Score;
+    public Text p2Score;
+
+    public Transform p1ParryCooldown;
+    public Transform p1DashCooldown;
+    public Transform p2ParryCooldown;
+    public Transform p2DashCooldown;
+    public float shift = 0.15f;
+
 
     public GameObject pauseScreen;
 
@@ -34,6 +44,15 @@ public class KillPointHandler : MonoBehaviour {
     void Update()
     {
         checkPause();
+        updateCooldowns();
+    }
+
+    void updateCooldowns()
+    {
+        p1ParryCooldown.localPosition = new Vector3(0, -p1Controller.getParryCooldown() * shift, 0);
+        p1DashCooldown.localPosition = new Vector3(0, -p1Controller.getDashCooldown() * shift, 0);
+        p2ParryCooldown.localPosition = new Vector3(0, -p2Controller.getParryCooldown() * shift, 0);
+        p2DashCooldown.localPosition = new Vector3(0, -p2Controller.getDashCooldown() * shift, 0);
     }
 
     public void updateScore(int player, int add)
@@ -45,8 +64,8 @@ public class KillPointHandler : MonoBehaviour {
 
     void reloadScoreDisplay()
     {
-        p1score.text = p1score_val.ToString();
-        p2score.text = p2score_val.ToString();
+        p1Score.text = p1score_val.ToString();
+        p2Score.text = p2score_val.ToString();
     }
 
     void beginCountdown()

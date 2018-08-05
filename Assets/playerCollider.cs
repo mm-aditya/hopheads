@@ -17,6 +17,10 @@ public class playerCollider : MonoBehaviour {
     private GameObject killer;
     private bool killed = false;
 
+    private bool touchAreaHazard = false;
+    private bool touchPlayerTop = true;
+    private Collision2D touchCol;
+
     void Start () {
         pController = transform.GetComponent<playerController>();
         box = transform.GetComponent<BoxCollider2D>();
@@ -36,12 +40,11 @@ public class playerCollider : MonoBehaviour {
 
     void OnCollisionEnter2D(Collision2D col)
     {
-        if (col.otherCollider.gameObject.tag != "Player") return;
+        if (col.otherCollider.gameObject.tag != "Player") return; //if this collider is not player, ignore
 
         string tag = col.collider.gameObject.tag;
 
         string side = sideOfCollision(col.contacts);
-        //print(side);
 
         if (tag == "platform")
         {
@@ -52,9 +55,13 @@ public class playerCollider : MonoBehaviour {
         if ((side == "top" && tag == "Player") || (tag == "AreaHazard"))
         {
             registerKill(col);
+            if (tag == "Player") touchPlayerTop = true;
+            if (tag == "AreaHazard") touchAreaHazard = true;
+            touchCol = col;
         }
+
         else if (tag == "Powerup") registerPowerup(col);
-        else if (tag == "Parry") registerParried(col);
+        else if (tag == "Parry") registerParried(col, side);
 
         portalHandling(col.gameObject);
     }
@@ -62,8 +69,13 @@ public class playerCollider : MonoBehaviour {
     void OnCollisionExit2D(Collision2D col)
     {
         if (col.otherCollider.gameObject.tag != "Player") return;
-        if (col.collider.gameObject.tag != "platform") return;
 
+        string tag = col.collider.gameObject.tag;
+
+        if (tag == "Player") touchPlayerTop = false;
+        if (tag == "AreaHazard") touchAreaHazard = false;
+
+        if (tag != "platform") return;
         string side = objectDict[col.gameObject];
         objectDict.Remove(col.gameObject);
         sideDict.Remove(side);
@@ -90,12 +102,27 @@ public class playerCollider : MonoBehaviour {
 
     void registerKill(Collision2D col)
     {
+        if (pController.getKilledSafeState() || col.otherCollider.gameObject.GetComponent<playerController>().getKilledSafeState()) {
+            print("safe");
+            return;
+        }
+
         if (pController.powerup_getMushroom()){
             pController.powerup_DectivateMushroom();
             return;
         }
         killed = true;
         killer = col.collider.gameObject;
+
+        touchPlayerTop = false;
+        touchAreaHazard = false;
+    }
+
+    public void checkPlayerTopTouch() {
+        if (touchPlayerTop) registerKill(touchCol);
+    }
+    public void checkAreaHazardTouch() {
+        if (touchAreaHazard) registerKill(touchCol);
     }
 
     void registerPowerup(Collision2D col)
@@ -110,9 +137,11 @@ public class playerCollider : MonoBehaviour {
         pController.destroy_powerup(powerup);
     }
 
-    void registerParried(Collision2D col)
+    void registerParried(Collision2D col, string side)
     {
-        print("kenna parried");
+        col.otherCollider.gameObject.GetComponent<playerController>().getParried(side);
+        print(col.otherCollider.gameObject.name+" kenna parried from " +side);
+        
     }
 
     public bool getKill() { return killed; }
