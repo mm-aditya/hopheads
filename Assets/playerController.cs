@@ -357,16 +357,20 @@ public class playerController : MonoBehaviour {
         string dashBtn = (playerNum == 1) ? "p1Dash" : "p2Dash";
         bool dash = Input.GetButtonDown(dashBtn);
 
+        string jumpBtn = (playerNum == 1) ? "p1Jump" : "p2Jump";
+        bool jumpPress = Input.GetButtonDown(jumpBtn);
+
         string vAxis = (playerNum == 1) ? "p1Vertical" : "p2Vertical";
         float v = Input.GetAxis(vAxis);
 
-        if (dashState && (dropState || jumpState)){
+        if (dashState && (dropState || jumpPress)){
             dashCooldown();
         }
 
         if (!dashState && !dashCooldownState && dash)
         {
             //start dash animation
+            if (jumpState) jumpState = false;
             dashState = true;
             dashStart = Time.time;
         }
@@ -388,7 +392,7 @@ public class playerController : MonoBehaviour {
                 rbody.gravityScale = gravityScale;
             }
             else dashCooldown();
-            if (Input.GetButtonUp(dashBtn)) dashCooldown();
+            //if (Input.GetButtonUp(dashBtn)) dashCooldown();
         }
     }
 
