@@ -5,45 +5,49 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
-    path: Assets/CorgiEngine/scenes/SplashScreen.unity
+  - enabled: 0
+    path: 
+    guid: 00000000000000000000000000000000
+  - enabled: 0
+    path: 
+    guid: 00000000000000000000000000000000
+  - enabled: 0
+    path: 
+    guid: 00000000000000000000000000000000
+  - enabled: 0
+    path: 
+    guid: 00000000000000000000000000000000
+  - enabled: 0
+    path: 
+    guid: 00000000000000000000000000000000
+  - enabled: 0
+    path: 
+    guid: 00000000000000000000000000000000
+  - enabled: 0
+    path: 
+    guid: 00000000000000000000000000000000
+  - enabled: 0
+    path: 
+    guid: 00000000000000000000000000000000
+  - enabled: 0
+    path: 
+    guid: 00000000000000000000000000000000
+  - enabled: 0
+    path: 
+    guid: 00000000000000000000000000000000
+  - enabled: 0
+    path: 
+    guid: 00000000000000000000000000000000
+  - enabled: 0
+    path: 
+    guid: 00000000000000000000000000000000
+  - enabled: 0
+    path: 
+    guid: 00000000000000000000000000000000
+  - enabled: 0
+    path: 
     guid: 00000000000000000000000000000000
   - enabled: 1
-    path: Assets/CorgiEngine/scenes/StartScreen.unity
-    guid: 00000000000000000000000000000000
-  - enabled: 1
-    path: Assets/CorginEngineIgnoredAssets/MobileStartScreen.unity
-    guid: 00000000000000000000000000000000
-  - enabled: 1
-    path: Assets/CorgiEngine/scenes/Mesa1.unity
-    guid: 00000000000000000000000000000000
-  - enabled: 1
-    path: Assets/CorgiEngine/scenes/Mesa2.unity
-    guid: 00000000000000000000000000000000
-  - enabled: 1
-    path: Assets/CorgiEngine/scenes/Mountains.unity
-    guid: 00000000000000000000000000000000
-  - enabled: 1
-    path: Assets/CorgiEngine/scenes/Lava.unity
-    guid: 00000000000000000000000000000000
-  - enabled: 1
-    path: Assets/CorgiEngine/scenes/PixelLevel.unity
-    guid: 00000000000000000000000000000000
-  - enabled: 1
-    path: Assets/CorgiEngine/scenes/MinimalLevel.unity
-    guid: 00000000000000000000000000000000
-  - enabled: 1
-    path: Assets/CorgiEngine/scenes/BrobroLevel.unity
-    guid: 00000000000000000000000000000000
-  - enabled: 1
-    path: Assets/CorgiEngine/scenes/Sandbox.unity
-    guid: 00000000000000000000000000000000
-  - enabled: 1
-    path: Assets/CorgiEngine/scenes/HipsterLevel.unity
-    guid: 00000000000000000000000000000000
-  - enabled: 1
-    path: Assets/CorgiEngine/scenes/3D Level.unity
-    guid: 00000000000000000000000000000000
-  - enabled: 1
-    path: Assets/CorgiEngine/scenes/LevelSelection.unity
-    guid: 00000000000000000000000000000000
+    path: Assets/final.unity
+    guid: c9b31e1efbb89a145b412a91e466526d
+  m_configObjects: {}

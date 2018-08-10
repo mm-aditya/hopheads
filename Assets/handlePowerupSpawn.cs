@@ -24,7 +24,7 @@ public class handlePowerupSpawn : MonoBehaviour
         foreach (Transform child in transform) unoccupiedSpawns.Add(child.position);
 
         spawnRandomPowerup();
-        spawnRandomPowerup();
+        if (maxSpawnCount > 1) spawnRandomPowerup();
 
         timeStart = Time.time;
     }

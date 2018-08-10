@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class KillPointHandler : MonoBehaviour {
-
     public handlePlayerSpawn playerSpawn;
     public handlePowerupSpawn powerupSpawn;
 
@@ -20,7 +19,6 @@ public class KillPointHandler : MonoBehaviour {
     public Transform p2DashCooldown;
     public float shift = 0.15f;
 
-
     public GameObject pauseScreen;
 
     private int p1score_val = 0;
@@ -35,11 +33,73 @@ public class KillPointHandler : MonoBehaviour {
 
     private bool pauseState = false;
 
-	// Use this for initialization
-	void Start () {
+    public overall_data overall;
+    public SpriteRenderer p1Sprite;
+    public SpriteRenderer p2Sprite;
+
+    public Sprite rabbit;
+    public Sprite kangaroo;
+    public Sprite robot;
+
+    private AudioSource childsource;
+    private AudioSource mainsource;
+
+    public GameObject match_start;
+    public GameObject match_over;
+    public AudioClip startLevel;
+    public AudioClip endLevel;
+
+    // Use this for initialization
+    void Awake () {
+        childsource = GetComponentInChildren<AudioSource>();
+        mainsource = GetComponent<AudioSource>();
+    }
+    private void Start()
+    {
+    }
+
+    private void OnEnable()
+    {
+        Reset();
+    }
+
+    public void Reset()
+    {
+        int p1_icon = overall.getP1();
+        int p2_icon = overall.getP2();
+        if (p1_icon == 0) p1Sprite.sprite = rabbit;
+        else if (p1_icon == 1) p1Sprite.sprite = kangaroo;
+        else if (p1_icon == 2) p1Sprite.sprite = robot;
+        if (p2_icon == 0) p2Sprite.sprite = rabbit;
+        else if (p2_icon == 1) p2Sprite.sprite = kangaroo;
+        else if (p2_icon == 2) p2Sprite.sprite = robot;
+
+        p1score_val = 0;
+        p2score_val = 0;
         reloadScoreDisplay();
+
+        match_start.SetActive(false);
+        match_over.SetActive(false);
+        pauseState = false;
+        handlePause();
+
+        reloadScoreDisplay();
+
+        minutes = 2;
+        seconds = 0;
+
+        StartCoroutine("startMatch");
+    }
+
+    IEnumerator startMatch()
+    {
+        print("start match");
+        match_start.SetActive(true);
+        childsource.PlayOneShot(startLevel);
+        yield return new WaitForSeconds(1f);
+        match_start.SetActive(false);
         beginCountdown();
-	}
+    }
 
     void Update()
     {
@@ -72,22 +132,27 @@ public class KillPointHandler : MonoBehaviour {
     {
         timeStart = Time.time;
         countdownMin.text = minutes.ToString();
+        countdownSec.text = seconds.ToString();
         StartCoroutine(countdownRun());
     }
 
     IEnumerator countdownRun()
     {
+        print("counting down: +"+minutes+"min "+seconds+"sec");
+        reloadCountdownDisplay();
+
         if (minutes <= 0 && seconds <= 0)
         {
             endGame();
             yield break;
         }
-
-        reloadCountdownDisplay();
-        yield return new WaitForSeconds(1);
-        if (seconds == 0) { seconds = 59; minutes -= 1; }
-        else { seconds -= 1; }
-        StartCoroutine(countdownRun());
+        else
+        {
+            yield return new WaitForSeconds(1);
+            if (seconds == 0 && minutes != 0) { seconds = 59; minutes -= 1; }
+            else { seconds -= 1; }
+            StartCoroutine(countdownRun());
+        }
     }
 
     void reloadCountdownDisplay()
@@ -99,7 +164,17 @@ public class KillPointHandler : MonoBehaviour {
 
     void endGame()
     {
+        StartCoroutine("endMatch");
+    }
 
+    IEnumerator endMatch()
+    {
+        print("end match");
+        mainsource.Pause();
+        match_over.SetActive(true);
+        childsource.PlayOneShot(endLevel);
+        yield return new WaitForSeconds(1f);
+        overall.endMatchScene(p1score_val, p2score_val);
     }
 
     void checkPause()

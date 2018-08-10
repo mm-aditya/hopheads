@@ -17,6 +17,8 @@ TagManager:
   - Parry
   - AreaHazard
   - DangerHazard
+  - Body
+  - Feet
   layers:
   - Default
   - TransparentFX

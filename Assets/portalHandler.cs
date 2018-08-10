@@ -27,7 +27,7 @@ public class portalHandler : MonoBehaviour {
     public Vector3 getTeleportIncrement(GameObject portal, float playerSize)
     {
         if (portal.tag == "portalRight") return new Vector3(- (horizontalDist - playerSize), 0, 0);
-        if (portal.tag == "portalLeft") return new Vector3(horizontalDist - playerSize, 0, 0);
+        if (portal.tag == "portalLeft") return new Vector3((horizontalDist - playerSize), 0, 0);
         if (portal.tag == "portalBottom") return new Vector3(0, verticalDist - playerSize, 0);
         if (portal.tag == "portalTop") return new Vector3(0, -(verticalDist - playerSize), 0);
         return Vector3.zero;
